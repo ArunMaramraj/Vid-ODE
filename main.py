@@ -46,7 +46,7 @@ def get_opt():
     parser.add_argument('--irregular', action='store_true', default=False, help="Train with irregular time-steps")
     
     # Need to be tested...
-    parser.add_argument('--extrap', action='store_true', default=False, help="Set extrapolation mode. If this flag is not set, run interpolation mode.")
+    parser.add_argument('--extrap', action='store_true', default=True, help="Set extrapolation mode. If this flag is not set, run interpolation mode.")
 
     # Test argument:
     parser.add_argument('--split_time', default=10, type=int, help='Split time for extrapolation or interpolation ')
@@ -57,9 +57,9 @@ def get_opt():
     parser.add_argument("--image_print_freq", type=int, default=1000)
     
     # Path (Data & Checkpoint & Tensorboard)
-    parser.add_argument('--dataset', type=str, default='kth', choices=["mgif", "hurricane", "kth", "penn"])
-    parser.add_argument('--log_dir', type=str, default='./logs', help='save tensorboard infos')
-    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints', help='save checkpoint infos')
+    parser.add_argument('--dataset', type=str, default='ucfcrime', choices=["mgif", "hurricane", "kth", "penn","ucfcrime"])
+    parser.add_argument('--log_dir', type=str, default='/kaggle/working/logs', help='save tensorboard infos')
+    parser.add_argument('--checkpoint_dir', type=str, default='/kaggle/working/checkpoints', help='save checkpoint infos')
     parser.add_argument('--test_dir', type=str, help='load saved model')
     
     opt = parser.parse_args()
@@ -68,7 +68,7 @@ def get_opt():
     
     if opt.phase == 'train':
         # Make Directory
-        STORAGE_PATH = utils.create_folder_ifnotexist("./storage")
+        STORAGE_PATH = utils.create_folder_ifnotexist("/kaggle/working/storage")
         STORAGE_PATH = STORAGE_PATH.resolve()
         LOG_PATH = utils.create_folder_ifnotexist(STORAGE_PATH / "logs")
         CKPT_PATH = utils.create_folder_ifnotexist(STORAGE_PATH / "checkpoints")
