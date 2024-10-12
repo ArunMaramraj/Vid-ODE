@@ -14,7 +14,7 @@ import eval_models as models
 
 def get_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--result_image_dir', default='./')
+    parser.add_argument('--result_image_dir', default='/kaggle/working')
 
     opt = parser.parse_args()
     return opt
