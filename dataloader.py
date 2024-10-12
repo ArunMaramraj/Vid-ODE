@@ -162,49 +162,49 @@ def remove_files_under_sample_size(image_path, threshold):
     return image_list
 
 
-class HurricaneVideoDataset(Dataset_base):
-    def __init__(self, opt, train=True):
-        super(HurricaneVideoDataset, self).__init__(opt, train=train)
+# class HurricaneVideoDataset(Dataset_base):
+#     def __init__(self, opt, train=True):
+#         super(HurricaneVideoDataset, self).__init__(opt, train=train)
         
-        self.nc = 3 if self.opt.dataset == "hurricane" else 6
+#         self.nc = 3 if self.opt.dataset == "hurricane" else 6
         
-        if self.train:
-            self.image_path = os.path.join('./dataset/Hurricane/', 'train')
-        else:
-            self.image_path = os.path.join('./dataset/Hurricane/', 'test')
+#         if self.train:
+#             self.image_path = os.path.join('./dataset/Hurricane/', 'train')
+#         else:
+#             self.image_path = os.path.join('./dataset/Hurricane/', 'test')
         
-        threshold = self.window_size if opt.irregular else self.sample_size
-        self.image_list = remove_files_under_sample_size(image_path=self.image_path, threshold=threshold)
-        self.image_list = sorted(self.image_list)
+#         threshold = self.window_size if opt.irregular else self.sample_size
+#         self.image_list = remove_files_under_sample_size(image_path=self.image_path, threshold=threshold)
+#         self.image_list = sorted(self.image_list)
         
-        vtrans = [vtransforms.Pad(padding=(1, 0), fill=0)]
+#         vtrans = [vtransforms.Pad(padding=(1, 0), fill=0)]
 
-        if self.train:
-            # vtrans += [vtransforms.RandomHorizontalFlip()]
-            # vtrans += [vtransforms.RandomRotation()]
-            pass
+#         if self.train:
+#             # vtrans += [vtransforms.RandomHorizontalFlip()]
+#             # vtrans += [vtransforms.RandomRotation()]
+#             pass
         
-        vtrans += [vtransforms.ToTensor(scale=False)]
-        vtrans += [vtransforms.Normalize(0.5, 0.5)] if opt.input_norm else []
-        self.vtrans = T.Compose(vtrans)
+#         vtrans += [vtransforms.ToTensor(scale=False)]
+#         vtrans += [vtransforms.Normalize(0.5, 0.5)] if opt.input_norm else []
+#         self.vtrans = T.Compose(vtrans)
         
-    def __getitem__(self, index):
+#     def __getitem__(self, index):
         
-        assert self.sample_size <= self.window_size, "[Error] sample_size > window_size"
+#         assert self.sample_size <= self.window_size, "[Error] sample_size > window_size"
         
-        images = np.load(os.path.join(self.image_path, self.image_list[index]))
-        images = images[..., :self.nc]
+#         images = np.load(os.path.join(self.image_path, self.image_list[index]))
+#         images = images[..., :self.nc]
         
-        # Sampling
-        input_images, mask = self.sampling(images=images)
+#         # Sampling
+#         input_images, mask = self.sampling(images=images)
         
-        # Transform
-        input_images = self.vtrans(input_images)  # return (b, c, h, w)
+#         # Transform
+#         input_images = self.vtrans(input_images)  # return (b, c, h, w)
         
-        return input_images, mask
+#         return input_images, mask
     
-    def __len__(self):
-        return len(self.image_list)
+#     def __len__(self):
+#         return len(self.image_list)
 
 
 class VideoDataset(Dataset_base):
@@ -213,15 +213,15 @@ class VideoDataset(Dataset_base):
         super(VideoDataset, self).__init__(opt, train=train)
         
         # Dataroot & Transform
-        if opt.dataset == 'mgif':
-            data_root = './dataset/moving-gif'
+        if opt.dataset == 'ucfcrime':
+            data_root = '/kaggle/input/ucfcrime'
             vtrans = [vtransforms.Scale(size=128)]
-        elif opt.dataset == 'kth':
-            data_root = './dataset/kth_action/'
-            vtrans = [vtransforms.CenterCrop(size=120), vtransforms.Scale(size=128)]
-        elif opt.dataset == 'penn':
-            data_root = './dataset/penn_action/'
-            vtrans = [vtransforms.Scale(size=128)]
+        # elif opt.dataset == 'kth':
+        #     data_root = './dataset/kth_action/'
+        #     vtrans = [vtransforms.CenterCrop(size=120), vtransforms.Scale(size=128)]
+        # elif opt.dataset == 'penn':
+        #     data_root = './dataset/penn_action/'
+        #     vtrans = [vtransforms.Scale(size=128)]
         
         if self.train:
             vtrans += [vtransforms.RandomHorizontalFlip()]
@@ -237,10 +237,10 @@ class VideoDataset(Dataset_base):
             self.image_path = os.path.join(data_root, 'test')
         
         threshold = self.window_size if opt.irregular else self.sample_size
-        if opt.dataset in ['kth', 'sintel', 'ucf101', 'penn']:
+        if opt.dataset in ['kth', 'sintel', 'ucfcrime', 'penn']:
             self.image_list = os.listdir(self.image_path)
-        elif opt.dataset in ['mgif', 'stickman']:
-            self.image_list = remove_files_under_sample_size(image_path=self.image_path, threshold=threshold)
+        # elif opt.dataset in ['mgif', 'stickman']:
+        #     self.image_list = remove_files_under_sample_size(image_path=self.image_path, threshold=threshold)
         self.image_list = sorted(self.image_list)
     
     def __getitem__(self, index):
@@ -293,7 +293,7 @@ def parse_datasets(opt, device):
                                      batch_size=opt.batch_size,
                                      shuffle=False,
                                      collate_fn=lambda batch: video_collate_fn(batch, time_steps, data_type="test"))
-    elif opt.dataset in ['mgif', 'kth', 'penn']:
+    elif opt.dataset in ['mgif', 'kth', 'penn','ucfcrime']:
         train_dataloader = DataLoader(VideoDataset(opt, train=True),
                                       batch_size=opt.batch_size,
                                       shuffle=True,
