@@ -3,7 +3,8 @@ import os
 
 import numpy as np
 from PIL import Image
-from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import structural_similarity as compare_ssim
+
 from math import log10
 import torch
 import torch.nn.functional as F
