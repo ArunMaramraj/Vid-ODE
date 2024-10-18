@@ -214,7 +214,7 @@ class VideoDataset(Dataset_base):
         
         # Dataroot & Transform
         if opt.dataset == 'ucfcrime':
-            data_root = '/kaggle/input/ucfcrime'
+            data_root = '/kaggle/input/ucfcrime/ucfcrime'
             vtrans = [vtransforms.Scale(size=128)]
         # elif opt.dataset == 'kth':
         #     data_root = './dataset/kth_action/'
