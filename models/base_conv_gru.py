@@ -54,6 +54,7 @@ class ConvGRUCell(nn.Module):
         return h_next
 
 
+
 class Encoder_z0_ODE_ConvGRU(nn.Module):
     
     def __init__(self, input_size, input_dim, hidden_dim, kernel_size, num_layers, dtype, batch_first=False,
@@ -186,3 +187,56 @@ class Encoder_z0_ODE_ConvGRU(nn.Module):
         if not isinstance(param, list):
             param = [param] * num_layers
         return param
+
+
+def get_norm_layer(ch):
+    norm_layer = nn.BatchNorm2d(ch)
+    return norm_layer
+
+
+class Encoder(nn.Module):
+    
+    def __init__(self, input_dim=3, ch=64, n_downs=2):
+        super(Encoder, self).__init__()
+        
+        model = []
+        model += [nn.Conv2d(input_dim, ch, 3, 1, 1)]
+        model += [get_norm_layer(ch)]
+        model += [nn.ReLU()]
+        
+        for _ in range(n_downs):
+            model += [nn.Conv2d(ch, ch * 2, 4, 2, 1)]
+            model += [get_norm_layer(ch * 2)]
+            model += [nn.ReLU()]
+            ch *= 2
+        
+        self.model = nn.Sequential(*model)
+    
+    def forward(self, x):
+        out = self.model(x)
+        return out
+
+
+class Decoder(nn.Module):
+    
+    def __init__(self, input_dim=256, output_dim=3, n_ups=2):
+        super(Decoder, self).__init__()
+        
+        model = []
+        
+        ch = input_dim
+        for i in range(n_ups):
+            model += [nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)]
+            model += [nn.Conv2d(ch, ch // 2, 3, 1, 1)]
+            model += [get_norm_layer(ch // 2)]
+            model += [nn.ReLU()]
+            ch = ch // 2
+        
+        model += [nn.Conv2d(ch, output_dim, 3, 1, 1)]
+        # model += [nn.Tanh()]
+        
+        self.model = nn.Sequential(*model)
+    
+    def forward(self, x):
+        out = self.model(x)
+        return out
