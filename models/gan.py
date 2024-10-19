@@ -16,7 +16,7 @@ class ConvNormAct(nn.Module):
         if act_type == 'relu':
             layers.append(nn.ReLU(inplace=False))
         elif act_type == 'lrelu':
-            layers.append(nn.LeakyReLU(0.2))
+            layers.append(nn.LeakyReLU(0.2),inplace=False)
         
         self.main = nn.Sequential(*layers)
     
