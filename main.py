@@ -128,6 +128,8 @@ def main():
 
 
 def train(opt, netG, loader_objs, device):
+
+    torch.autograd.set_detect_anomaly(True)
     # Optimizer
     optimizer_netG = optim.Adamax(netG.parameters(), lr=opt.lr)
     
