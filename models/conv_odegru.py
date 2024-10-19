@@ -118,7 +118,7 @@ class VidODE(nn.Module):
         # ==================================================================================== #
         
         ##### ODE decoding
-        first_point_enc = first_point_enc.squeeze(0)
+        first_point_enc = first_point_enc.clone().squeeze(0)
         sol_y = self.diffeq_solver(first_point_enc, time_steps_to_predict)
         self.tracker.write_info(key="sol_y", value=sol_y.clone().cpu())
         
@@ -206,7 +206,7 @@ class VidODE(nn.Module):
         for t in time_iter:
             cur_and_prev = torch.cat([sol_out[:, t, ...], prev], dim=1)
             pred_flow = self.decoder(cur_and_prev).unsqueeze(1)
-            pred_flows += [pred_flow]
+            pred_flows.append(pred_flow)
             prev = sol_out[:, t, ...].clone()
     
         return pred_flows
@@ -223,12 +223,12 @@ class VidODE(nn.Module):
         """
         warped_time_steps = pred_flows.size(1)
         pred_x = list()
-        last_frame = start_image
+        last_frame = start_image.clone()
         b, _, c, h, w = pred_flows.shape
         
         for t in range(warped_time_steps):
             pred_flow = pred_flows[:, t, ...]           # b, 2, h, w
-            pred_flow = torch.cat([pred_flow[:, 0:1, :, :] / ((w - 1.0) / 2.0), pred_flow[:, 1:2, :, :] / ((h - 1.0) / 2.0)], dim=1)
+            pred_flow = torch.cat([pred_flow[:, 0:1, :, :].clone() / ((w - 1.0) / 2.0), pred_flow[:, 1:2, :, :].clone() / ((h - 1.0) / 2.0)], dim=1)
             pred_flow = pred_flow.permute(0, 2, 3, 1)   # b, h, w, 2
             flow_grid = grid.clone() + pred_flow.clone()# b, h, w, 2
             warped_x = nn.functional.grid_sample(last_frame, flow_grid, padding_mode="border")
@@ -259,9 +259,9 @@ class VidODE(nn.Module):
                                        mask=batch_dict["mask_predicted_data"]))
 
         if not self.opt.extrap:
-            init_image = batch_dict["observed_data"][:, 0, ...]
+            init_image = batch_dict["observed_data"][:, 0, ...].clone()
         else:
-            init_image = batch_dict["observed_data"][:, -1, ...]
+            init_image = batch_dict["observed_data"][:, -1, ...].clone()
 
         data = torch.cat([init_image.unsqueeze(1), batch_dict["data_to_predict"]], dim=1)
         data_diff = self.get_diff(data=data, mask=batch_dict["mask_predicted_data"])
