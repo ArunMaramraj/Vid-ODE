@@ -4,19 +4,19 @@ import torch.optim as optim
 
 class ConvNormAct(nn.Module):
     
-    def __init__(self, in_ch, out_ch, kernel_size, stride, padding, act_type='relu'):
+    def __init__(self, in_ch, out_ch, kernel_size, stride, padding, act_type='lrelu'):
         
         super(ConvNormAct, self).__init__()
         
         layers = []
-        layers += [nn.Conv2d(in_ch, out_ch, kernel_size, stride, padding)]
+        layers.append(nn.Conv2d(in_ch, out_ch, kernel_size, stride, padding))
         
-        layers += [nn.InstanceNorm2d(out_ch)]
+        layers.append(nn.InstanceNorm2d(out_ch))
         
         if act_type == 'relu':
-            layers += [nn.ReLU(inplace=True)]
+            layers.append(nn.ReLU(inplace=True))
         elif act_type == 'lrelu':
-            layers += [nn.LeakyReLU(0.2)]
+            layers.append(nn.LeakyReLU(0.2))
         
         self.main = nn.Sequential(*layers)
     
@@ -43,11 +43,11 @@ class Discriminator(nn.Module):
         self.last_conv = nn.Conv2d(512, 64, kernel_size=4, stride=1, padding=2, bias=False)
     
     def forward(self, x):
-        h = self.layer_1(x)
-        h = self.layer_2(h)
-        h = self.layer_3(h)
-        h = self.layer_4(h)
-        return self.last_conv(h)
+        h1 = self.layer_1(x)
+        h2 = self.layer_2(h1)
+        h3 = self.layer_3(h2)
+        h4 = self.layer_4(h3)
+        return self.last_conv(h4)
     
     def netD_adv_loss(self, real, fake, input_real):
         
@@ -96,7 +96,7 @@ class Discriminator(nn.Module):
         fake_seqs = []
         for i in range(t):
             fake_seq = torch.cat([input_real[:, i:, ...], fake[:, :i+1, ...]], dim=1)
-            fake_seqs += [fake_seq]
+            fake_seqs = fake_seqs + [fake_seq]
         fake_seqs = torch.cat(fake_seqs, dim=0).view(b * t, -1, h, w)
         
         if only_fake:
@@ -105,7 +105,7 @@ class Discriminator(nn.Module):
         real_seqs = []
         for i in range(t):
             real_seq = torch.cat([input_real[:, i:, ...], real[:, :i+1, ...]], dim=1)
-            real_seqs += [real_seq]
+            real_seqs  = real_seqs + [real_seq]
         real_seqs = torch.cat(real_seqs, dim=0).view(b * t, -1, h, w)
         
         return real_seqs, fake_seqs
@@ -118,7 +118,7 @@ class Discriminator(nn.Module):
         for i in range(t):
             reshaped_mask = mask[i].view(1, -1, 1, 1, 1)
             fake_seq = (1 - reshaped_mask) * input_real + reshaped_mask * fake
-            fake_seqs += [fake_seq]
+            fake_seqs = fake_seqs + [fake_seq]
         fake_seqs = torch.cat(fake_seqs, dim=0).view(b * t, -1, h, w)
     
         if only_fake:
@@ -128,7 +128,7 @@ class Discriminator(nn.Module):
         for i in range(t):
             reshaped_mask = mask[i].view(1, -1, 1, 1, 1)
             real_seq = (1 - reshaped_mask) * input_real + reshaped_mask * real
-            real_seqs += [real_seq]
+            real_seqs = real_seqs + [real_seq]
         real_seqs = torch.cat(real_seqs, dim=0).view(b * t, -1, h, w)
     
         return real_seqs, fake_seqs
@@ -142,7 +142,7 @@ def create_netD(opt, device):
         seq_len = opt.sample_size
     
     if opt.extrap:
-        seq_len += 1
+        seq_len = seq_len + 1
 
     netD_img = Discriminator(in_ch=3, device=device, seq=False, is_extrap=opt.extrap).to(device)
     netD_seq = Discriminator(in_ch=3 * (seq_len), device=device, seq=True, is_extrap=opt.extrap).to(device)
