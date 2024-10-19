@@ -177,15 +177,16 @@ def train(opt, netG, loader_objs, device):
             loss_adv_netG += opt.lamb_adv * netD_img.netG_adv_loss(fake, None)
             loss_netG += loss_adv_netG
 
+            # Train G
+            optimizer_netG.zero_grad()
+            loss_netG.backward()
+            optimizer_netG.step()
+
             # Train D
             optimizer_netD.zero_grad()
             loss_netD.backward()
             optimizer_netD.step()
             
-            # Train G
-            optimizer_netG.zero_grad()
-            loss_netG.backward()
-            optimizer_netG.step()
             
             if (total_step + 1) % opt.log_print_freq == 0 or total_step == 0:
                 et = time.time() - start_time
