@@ -16,7 +16,7 @@ class ConvNormAct(nn.Module):
         if act_type == 'relu':
             layers.append(nn.ReLU(inplace=False))
         elif act_type == 'lrelu':
-            layers.append(nn.LeakyReLU(0.2),inplace=False)
+            layers.append(nn.LeakyReLU(0.2,inplace=False))
         
         self.main = nn.Sequential(*layers)
     
@@ -36,7 +36,7 @@ class Discriminator(nn.Module):
         
         self.layer_1 = nn.Sequential(
             nn.Conv2d(in_ch, 64, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.LeakyReLU(0.2))
+            nn.LeakyReLU(0.2, inplace = False))
         self.layer_2 = ConvNormAct(64, 128, kernel_size=4, stride=2, padding=1, act_type='lrelu')
         self.layer_3 = ConvNormAct(128, 256, kernel_size=4, stride=2, padding=1, act_type='lrelu')
         self.layer_4 = ConvNormAct(256, 512, kernel_size=4, stride=1, padding=2, act_type='lrelu')
