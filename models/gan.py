@@ -14,7 +14,7 @@ class ConvNormAct(nn.Module):
         layers.append(nn.InstanceNorm2d(out_ch))
         
         if act_type == 'relu':
-            layers.append(nn.ReLU(inplace=True))
+            layers.append(nn.ReLU(inplace=False))
         elif act_type == 'lrelu':
             layers.append(nn.LeakyReLU(0.2))
         
