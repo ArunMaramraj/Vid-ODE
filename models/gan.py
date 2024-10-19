@@ -53,42 +53,43 @@ class Discriminator(nn.Module):
         
         if self.seq:
             if self.is_extrap:
-                real, fake = self.rearrange_seq(real, fake, input_real, only_fake=False)
+                real, fake = self.rearrange_seq(real.clone(), fake.clone(), input_real.clone(), only_fake=False)
             else:
-                real, fake = self.rearrange_seq_interp(real, fake, input_real, only_fake=False)
+                real, fake = self.rearrange_seq_interp(real.clone(), fake.clone(), input_real.clone(), only_fake=False)
         elif not self.seq:
             b, t, c, h, w = fake.size()
-            real = real.contiguous().view(-1, c, h, w)
-            fake = fake.contiguous().view(-1, c, h, w)
+            real = real.contiguous().view(-1, c, h, w).clone()  # Clone after reshaping
+            fake = fake.contiguous().view(-1, c, h, w).clone()  # Clone after reshaping
         
-        pred_fake = self.forward(fake.detach())
-        pred_real = self.forward(real)
+        pred_fake = self.forward(fake.detach().clone())  # Clone the detached fake data before forward pass
+        pred_real = self.forward(real.clone())  # Clone real data before forward pass
         
         # GAN loss type
         real_label = torch.ones_like(pred_real).to(self.device)
         loss_fake = torch.mean((pred_fake) ** 2)
-        loss_real = torch.mean((pred_real - real_label) ** 2)
+        loss_real = torch.mean((pred_real - real_label.clone()) ** 2)  # Clone the real label to ensure it's not modified in-place
         loss_D = (loss_real + loss_fake) * 0.5
-
+    
         return loss_D
     
     def netG_adv_loss(self, fake, input_real):
         b, t, c, h, w = fake.size()
         if self.seq:
             if self.is_extrap:
-                fake = self.rearrange_seq(None, fake, input_real, only_fake=True)
+                fake = self.rearrange_seq(None, fake.clone(), input_real.clone(), only_fake=True)
             else:
-                fake = self.rearrange_seq_interp(None, fake, input_real, only_fake=True)
+                fake = self.rearrange_seq_interp(None, fake.clone(), input_real.clone(), only_fake=True)
         elif not self.seq:
-            fake = fake.contiguous().view(-1, c, h, w)
+            fake = fake.contiguous().view(-1, c, h, w).clone()  # Clone fake after reshaping
         
-        pred_fake = self.forward(fake)
-
+        pred_fake = self.forward(fake.clone())  # Clone fake data before passing to forward
+    
         # GAN loss type
-        real_label = torch.ones_like(pred_fake).to(self.device)
+        real_label = torch.ones_like(pred_fake).to(self.device).clone()  # Clone real label tensor
         loss_real = torch.mean((pred_fake - real_label) ** 2)
         
         return loss_real
+
      
     def rearrange_seq(self, real, fake, input_real, only_fake=True):
         
