@@ -43,11 +43,11 @@ class Discriminator(nn.Module):
         self.last_conv = nn.Conv2d(512, 64, kernel_size=4, stride=1, padding=2, bias=False)
     
     def forward(self, x):
-        h1 = self.layer_1(x)
-        h2 = self.layer_2(h1)
-        h3 = self.layer_3(h2)
-        h4 = self.layer_4(h3)
-        return self.last_conv(h4)
+        h1 = self.layer_1(x.clone())
+        h2 = self.layer_2(h1.clone())
+        h3 = self.layer_3(h2.clone())
+        h4 = self.layer_4(h3.clone())
+        return self.last_conv(h4.clone())
     
     def netD_adv_loss(self, real, fake, input_real):
         
